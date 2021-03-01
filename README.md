@@ -1,6 +1,8 @@
 # Fingerprinting classification technique
 
-See <URL> for algorithm and technique details
+> by Antonin Durey
+
+See the publication on arkiv for the algorithm and technique details
 
 ## Data format
 
@@ -16,13 +18,15 @@ Run with `node ultimateClassifier.js`,
 You will need to manually label some files.
 The file containing the manual label is `runtime/manual.csv`
 Each time a script needs to be classified, it will be added in this file.
-Fill the c`oracle` column with your keyword to tell the algorithm if you consider if it is a fingerprinting script or not.
+Fill the `oracle` column with your keyword to tell the algorithm if you consider if it is a fingerprinting script or not.
+By default, write `fingerprinter` if you think the script is fingerprinting its users, `Non-fingerprinter` if you don't think so.
+
 You can add other columns to this file, for example to keep track of the reasons that conducted you to give this label.
 These reasons could be:
 - script is blocked by Anti tracking extension
 - script contains obvious keyword revealing its goal
 - ...
 
-Once it's done, save and relaunch the execution with `node ultimateClassfier.js`
+Once it's done, save and relaunch the execution with `node ultimateClassifier.js`
 
 At the end, check the `results` folder for the output labels and data.
