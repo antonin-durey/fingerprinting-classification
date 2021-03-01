@@ -1,0 +1,24 @@
+[
+  {
+    "thisToString":"window.navigator.userAgent",
+    "property":"window.navigator.userAgent",
+    "arguments":"",
+    "value":"\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36\"",
+    "origin":"file:///home/adurey/workspace/scripts/script-2.js",
+    "webpage":"file:///home/adurey/workspace/scripts/page.html",
+    "pageID":"516d3000-4832",
+    "date":"09/05/2020",
+    "nbTimes":4
+  },
+  {
+    "thisToString":"window.navigator.language",
+    "property":"window.navigator.language",
+    "arguments":"",
+    "value":"\"en-US\"",
+    "origin":"file:///home/adurey/workspace/scripts/script-2.js",
+    "webpage":"file:///home/adurey/workspace/scripts/page.html",
+    "pageID":"516d3000-4832",
+    "date":"09/05/2020",
+    "nbTimes":2
+  }
+]

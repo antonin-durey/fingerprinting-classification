@@ -1,0 +1,13 @@
+{
+  "folders": {
+    "groundTruth": "groundTruth",
+    "dataset": "examples/dataset",
+    "runtime": "runtime",
+    "results": "results"
+  },
+  "manualKeys": {
+    "fingerprinter": "fingerprinter",
+    "nonFingerprinter": "Non-fingerprinter",
+    "unknown": "unknown"
+  }
+}

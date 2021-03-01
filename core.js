@@ -68,83 +68,6 @@ const getScriptsElements = function(allElements) {
   return scriptsElement;
 };
 
-
-// const tmpAllElements = await getAllElements();
-
-
-/*
-const allElements = [];
-const getAllFinalElements = function () {
-  tmpAllElements.forEach(function (element) {
-    if (element.websiteTypeTag !== 'phishing' && (element.date === '29/01/2020' || element.date === '30/01/2020' || realFinalWebsitesList.includes(element.firstSecondWebPageDomain))) {
-      allElements.push(element);
-    }
-  });
-};
-
-getAllFinalElements();
-*/
-
-
-const getAllScripts = function (allElements) {
-  const scripts = [];
-
-  allElements.forEach(function (element) {
-    if (!scripts.includes(element.origin)) {
-      scripts.push(element.origin);
-    }
-  });
-  scripts.sort();
-  return scripts;
-};
-
-//  const allPages = getAllPages();
-
-function makeArray(h, w, val) {
-  var arr = [];
-  for (let i = 0; i < h; i++) {
-    arr[i] = [];
-    for (let j = 0; j < w; j++) {
-      arr[i][j] = val;
-    }
-  }
-  return arr;
-}
-/*
-const getScripts = function (scriptsFile) {
-  return new Promise(async function (resolve, reject) {
-    const scripts = [];
-    fs.createReadStream(scriptsFile)
-      .pipe(csv())
-      .on('data', async (row) => {
-        scripts.push(row);
-      }).on('end', () => {
-      resolve(scripts);
-    });
-  });
-};
-*/
-
-const formatDisconnectScripts = function(disconnectScripts, allAttributes) {
-  const scripts = {};
-  disconnectScripts.forEach(function(script) {
-    if(script.attributes.startsWith("[")) {
-      const attributes = {};
-      allAttributes.forEach(function(attribute){
-        attributes[attribute] = false;
-      });
-
-      script.attributes = JSON.parse(script.attributes);
-      script.attributes.forEach(function(attribute) {
-        attributes[attribute] = true;
-      });
-      scripts[script.Name] = attributes;
-    }
-  });
-
-  return scripts;
-};
-
 const mergeThisToStringProperty = function (thisToString, property) {
   let str = property;
   if (property !== undefined && thisToString !== undefined && !property.includes(thisToString) && !thisToString.includes(property)) {
@@ -152,26 +75,6 @@ const mergeThisToStringProperty = function (thisToString, property) {
   }
 
   return str;
-};
-
-const getScriptsWithAccessedAttributes = function (allScriptURLs, allAttributes, allElements) {
-  // Init all attributes for all scripts to "false"
-  const scripts = {};
-  allScriptURLs.forEach(function (scriptURL) {
-    const scriptObj = {};
-    allAttributes.forEach(function (attribute) {
-      scriptObj[attribute] = false;
-    });
-    scripts[scriptURL] = scriptObj;
-  });
-
-  allElements.forEach(function (element) {
-    if (allScriptURLs.includes(element.origin)) {
-      const thisToStringProperty = mergeThisToStringProperty(element.thisToString, element.property);
-      scripts[element.origin][thisToStringProperty] = true;
-    }
-  });
-  return scripts;
 };
 
 const getAllFolderElements = async function(folder) {
@@ -194,54 +97,6 @@ const getAllFolderElements = async function(folder) {
 };
 
 
-/*
-const getSimilarityScoreBetweenDatasetScriptAndFingerprinter = function(attributesParameters, fingerprinterElement, datasetScriptElement) {
-  let score = 0;
-  attributesParameters.forEach(function(attributeParameter) {
-    /*
-    if(fingerprinterElement[attributeParameter] === undefined && datasetScriptElement[attributeParameter] === undefined) {
-      score += 1;
-    } else
-     if(fingerprinterElement[attributeParameter] === undefined || datasetScriptElement[attributeParameter] === undefined) {
-      score += 0;
-    } else if(fingerprinterElement[attributeParameter] === datasetScriptElement[attributeParameter]) {
-      score += 1;
-    } else {
-      if(fingerprinterElement[attributeParameter] > datasetScriptElement[attributeParameter]) {
-      score += datasetScriptElement[attributeParameter] / fingerprinterElement[attributeParameter];
-    } else {
-      score += fingerprinterElement[attributeParameter] / datasetScriptElement[attributeParameter];
-    }
-  }
-
- });
-
- return score / attributesParameters.length;
-};
-
-const getHighestSimilarityScoreBetweenDatasetScriptAndFingerprinters = function(attributesParameters, fingerprintersElements, datasetScriptElement) {
-  let highestScore = 0;
-  const fingerprinters = Object.keys(fingerprintersElements);
-  fingerprinters.forEach(function(fingerprinter){
-    const score = getSimilarityScoreBetweenDatasetScriptAndFingerprinter(attributesParameters, fingerprintersElements[fingerprinter], datasetScriptElement);
-    if(score > highestScore) {
-      highestScore = score
-    }
-  });
-
-  return highestScore;
-};
-
-const getSimilarityScoreForAllDatasetScripts = function(attributesParameters, fingerprintersElements, datasetScriptsElements) {
-  const scriptsScore = {};
-  const scripts = Object.keys(datasetScriptsElements);
-  scripts.forEach(function(script){
-    scriptsScore[script] = getHighestSimilarityScoreBetweenDatasetScriptAndFingerprinters(attributesParameters, fingerprintersElements, datasetScriptsElements[script]);
-  });
-  return scriptsScore;
-};
-
-*/
 const getIntersectionAndJaccardBetweenTwoScripts = function(firstScriptElement, secondScriptElement) {
   function removeDups(names) {
     let unique = {};
@@ -342,7 +197,7 @@ const getManualClassificationResults = function(filepath) {
       fs.createReadStream(filepath)
           .pipe(csv())
           .on('data', async (row) => {
-            manualClassificationResults[row.URL] = row.oracle;
+            manualClassificationResults[row.script] = row.oracle;
           }).on('end', () => {
             resolve(manualClassificationResults);
           }
@@ -353,6 +208,37 @@ const getManualClassificationResults = function(filepath) {
     }
   });
 };
+
+const addScriptToManualClassificationFile = async function(filepath, script) {
+  return new Promise(function(resolve, reject) {
+    if(!fs.existsSync(filepath)) {
+      fs.copyFileSync('manual-template.csv', filepath);
+    }
+
+    const manualClassificationData = [];
+    fs.createReadStream(filepath)
+        .pipe(csv())
+        .on('data', async (row) => {
+          manualClassificationData.push(row);
+        }).on('end', () => {
+          manualClassificationData.push({script: script, oracle: ""});
+          const headers = [];
+          Object.keys(manualClassificationData[0]).forEach(function(header) {
+            headers.push({title: header, id: header});
+          });
+          const csvWriter = createCsvWriter({
+            path: filepath,
+            header: headers
+          });
+
+          csvWriter.writeRecords(manualClassificationData).then(() => {
+            resolve();
+          });
+
+        }
+    );
+  });
+}
 
 const oneOfNonFingerprintersHasAScoreOfOne = function(nonFingerprinters, datasetScriptsElements, fingerprintersScriptsElements) {
   nonFingerprinters.forEach(function(nonFingerprinter){
@@ -1640,19 +1526,20 @@ const getScripts = function(datasetElements) {
   return scripts;
 };
 
-const getElements = function() {
+const getWildDatasetElements = function(folderpath) {
   return [];
 }
 
 module.exports = {
   getAllFolderElements: getAllFolderElements,
-  getElements: getElements,
+//  getWildDatasetElements: getWildDatasetElements,
   getScriptsElements: getScriptsElements,
 //  getSimilarityScore: getSimilarityScore,
   getAttributeParameterListFromData: getAttributeParameterListFromData,
   getDecroissantOrderKeys: getDecroissantOrderKeys,
   getManualClassificationResults: getManualClassificationResults,
-  oneOfNonFingerprintersHasAScoreOfOne: oneOfNonFingerprintersHasAScoreOfOne,
+  addScriptToManualClassificationFile: addScriptToManualClassificationFile,
+//  oneOfNonFingerprintersHasAScoreOfOne: oneOfNonFingerprintersHasAScoreOfOne,
 //  getSimilarityScoreForAllDatasetScripts: getSimilarityScoreForAllDatasetScripts,
   getIntersectionsForAllDatasetScripts: getIntersectionsForAllDatasetScripts,
   getHighestIntersectionAndJaccardBetweenDatasetScriptAndScriptsList: getHighestIntersectionAndJaccardBetweenDatasetScriptAndScriptsList,
@@ -1661,36 +1548,36 @@ module.exports = {
   getGroupedScores: getGroupedScores,
   saveJSON: saveJSON,
   loadJSON: loadJSON,
-  getFingerprintersList: getFingerprintersList,
-  getFinalFingerprinters: getFinalFingerprinters,
-  getFpInstances: getFpInstances,
-  getFingerprintersAttribute: getFingerprintersAttribute,
-  getNbNonFingerprintersUsingAttribute: getNbNonFingerprintersUsingAttribute,
-  getAttributeFamily: getAttributeFamily,
-  getScriptsHavingAttributeOfFamily: getScriptsHavingAttributeOfFamily,
-  getIdenticalAttributeOfFamily: getIdenticalAttributeOfFamily,
-  compureDistanceBetweenAllFingerprinters: compureDistanceBetweenAllFingerprinters,
-  getScriptsFromFingerprintJS: getScriptsFromFingerprintJS,
-  getDomainsWitFPOnSignInPages: getDomainsWitFPOnSignInPages,
-  getDomainsHavingABasketPageWithAFingerprinter: getDomainsHavingABasketPageWithAFingerprinter,
-  getFirstThirdPartyFingerprinters: getFirstThirdPartyFingerprinters,
-  getFpSummary: getFpSummary,
-  getAttributesFamilyRepartition: getAttributesFamilyRepartition,
-  getDistributionFromPageType: getDistributionFromPageType,
-  getDistributionFromDomain: getDistributionFromDomain,
-  getDomainsWithOnlyFPOnSecuredPages: getDomainsWithOnlyFPOnSecuredPages,
-  getDiffAttributesBetweenFPOnSecuredAndNonSecuredPages: getDiffAttributesBetweenFPOnSecuredAndNonSecuredPages,
-  getBotMFADistribution: getBotMFADistribution,
-  getNbPagesWithNbFingerprinters: getNbPagesWithNbFingerprinters,
-  getNbAttributesPerScript: getNbAttributesPerScript,
-  getDistinctKeys: getDistinctKeys,
-  generateUltimateCollection: generateUltimateCollection,
-  storeFingerprinters: storeFingerprinters,
-  getScriptAttributeFamilyDistribution: getScriptAttributeFamilyDistribution,
-  getNbAttributesOfNonFingerprinters: getNbAttributesOfNonFingerprinters,
-  getNbDomainsWithNbFingerprinters: getNbDomainsWithNbFingerprinters,
-  getAttributesOfScript: getAttributesOfScript,
-  getDomainsHavingAllTheirBasketPagesWithoutAFingerprinter: getDomainsHavingAllTheirBasketPagesWithoutAFingerprinter,
-  getRandomScripts: getRandomScripts,
-  getScripts: getScripts,
+//  getFingerprintersList: getFingerprintersList,
+//  getFinalFingerprinters: getFinalFingerprinters,
+//  getFpInstances: getFpInstances,
+//  getFingerprintersAttribute: getFingerprintersAttribute,
+//  getNbNonFingerprintersUsingAttribute: getNbNonFingerprintersUsingAttribute,
+//  getAttributeFamily: getAttributeFamily,
+//  getScriptsHavingAttributeOfFamily: getScriptsHavingAttributeOfFamily,
+//  getIdenticalAttributeOfFamily: getIdenticalAttributeOfFamily,
+//  compureDistanceBetweenAllFingerprinters: compureDistanceBetweenAllFingerprinters,
+//  getScriptsFromFingerprintJS: getScriptsFromFingerprintJS,
+//  getDomainsWitFPOnSignInPages: getDomainsWitFPOnSignInPages,
+//  getDomainsHavingABasketPageWithAFingerprinter: getDomainsHavingABasketPageWithAFingerprinter,
+//  getFirstThirdPartyFingerprinters: getFirstThirdPartyFingerprinters,
+//  getFpSummary: getFpSummary,
+//  getAttributesFamilyRepartition: getAttributesFamilyRepartition,
+//  getDistributionFromPageType: getDistributionFromPageType,
+//  getDistributionFromDomain: getDistributionFromDomain,
+//  getDomainsWithOnlyFPOnSecuredPages: getDomainsWithOnlyFPOnSecuredPages,
+//  getDiffAttributesBetweenFPOnSecuredAndNonSecuredPages: getDiffAttributesBetweenFPOnSecuredAndNonSecuredPages,
+//  getBotMFADistribution: getBotMFADistribution,
+//  getNbPagesWithNbFingerprinters: getNbPagesWithNbFingerprinters,
+//  getNbAttributesPerScript: getNbAttributesPerScript,
+//  getDistinctKeys: getDistinctKeys,
+//  generateUltimateCollection: generateUltimateCollection,
+//  storeFingerprinters: storeFingerprinters,
+//  getScriptAttributeFamilyDistribution: getScriptAttributeFamilyDistribution,
+//  getNbAttributesOfNonFingerprinters: getNbAttributesOfNonFingerprinters,
+//  getNbDomainsWithNbFingerprinters: getNbDomainsWithNbFingerprinters,
+//  getAttributesOfScript: getAttributesOfScript,
+//  getDomainsHavingAllTheirBasketPagesWithoutAFingerprinter: getDomainsHavingAllTheirBasketPagesWithoutAFingerprinter,
+//  getRandomScripts: getRandomScripts,
+//  getScripts: getScripts,
 };
